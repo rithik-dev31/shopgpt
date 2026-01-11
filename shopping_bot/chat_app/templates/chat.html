@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopGPT | AI Comparison Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/48/000000/shopping-bag--v1.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #10b981;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #fdfcfb 0%, #e2d1c3 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Modern Scrollbar */
+        #chat::-webkit-scrollbar { width: 5px; }
+        #chat::-webkit-scrollbar-track { background: transparent; }
+        #chat::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .glass {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Message Styles */
+        .user-bubble {
+            background: white;
+            color: #1e293b;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .bot-bubble {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Product Card Redesign */
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        .platform-tag {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 3px 8px;
+            border-radius: 99px;
+            font-weight: 700;
+        }
+
+        .amazon-tag { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+        .flipkart-tag { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+
+        .loading-dots span {
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="text-slate-900 flex flex-col">
+
+    <nav class="p-4 md:p-6 w-full max-w-7xl mx-auto flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
+                <i class="fas fa-bolt text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tight leading-none">Shop<span class="text-indigo-600">GPT</span></h1>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Comparison Engine</p>
+            </div>
+        </div>
+        <div class="hidden md:flex items-center gap-6">
+            <span class="text-xs font-semibold text-slate-500 flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                MCP Servers Active
+            </span>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 pb-6 overflow-hidden flex flex-col">
+        <div class="glass flex-1 rounded-[24px] shadow-2xl overflow-hidden flex flex-col border border-white">
+            
+            <div id="chat" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+                <div class="flex flex-col items-center text-center max-w-lg mx-auto py-12">
+                    <div class="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-hand-sparkles text-xl text-indigo-500"></i>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">Ready to find the best deals?</h2>
+                    <p class="text-slate-500 text-xs leading-relaxed">I'll compare real-time prices across major platforms. Just type your product and budget below.</p>
+                </div>
+            </div>
+
+            <div class="p-4 md:p-6 bg-white/60 border-t border-slate-100 shrink-0">
+                
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar justify-center md:justify-start">
+                    <button class="platform-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-600 shadow-sm whitespace-nowrap transition-all" data-platform="amazon">
+                        <i class="fab fa-amazon text-orange-500"></i> Amazon
+                    </button>
+                    <button class="platform-btn flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-600 shadow-sm whitespace-nowrap transition-all" data-platform="flipkart">
+                        <i class="fas fa-shopping-bag text-blue-500"></i> Flipkart
+                    </button>
+                    <button class="platform-btn flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600 text-white shadow-md text-xs font-bold whitespace-nowrap ring-2 ring-indigo-100 transition-all" data-platform="both">
+                        <i class="fas fa-layer-group"></i> Compare Both
+                    </button>
+                </div>
+
+                <form id="chatForm" class="relative max-w-5xl mx-auto">
+                    <input id="userInput" type="text" 
+                           class="w-full bg-white pl-5 pr-32 py-4 rounded-xl border-none focus:ring-4 focus:ring-indigo-50 shadow-sm text-sm text-slate-700 placeholder:text-slate-400 font-medium transition-all"
+                           placeholder="Type product name... e.g. 'Cricket bat under 2000 amazon'">
+                    
+                    <div class="absolute right-1.5 top-1.5 bottom-1.5 flex gap-1">
+                        <button type="button" id="voiceBtn" class="px-3 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button type="submit" id="sendBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 rounded-lg font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95 text-xs uppercase tracking-wider">
+                            <span>Search</span>
+                            <i class="fas fa-search text-[10px]"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf('=');
+                    const namePos = cookie.indexOf(name);
+                    if (namePos === 0 && eqPos !== -1) {
+                        cookieValue = decodeURIComponent(cookie.substring(eqPos + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        class ShoppingBot {
+            constructor() {
+                this.chat = document.getElementById('chat');
+                this.form = document.getElementById('chatForm');
+                this.input = document.getElementById('userInput');
+                this.sendBtn = document.getElementById('sendBtn');
+
+                this.messages = [];
+                this.currentPlatform = 'both';
+                this.isLoading = false;
+
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                this.form.onsubmit = (e) => { e.preventDefault(); this.sendMessage(); };
+                this.input.onkeypress = (e) => { if (e.key === 'Enter') { e.preventDefault(); this.sendMessage(); } };
+
+                document.querySelectorAll('.platform-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        document.querySelectorAll('.platform-btn').forEach(b => {
+                            b.classList.remove('bg-indigo-600', 'text-white', 'ring-2', 'ring-indigo-100');
+                            b.classList.add('bg-white', 'text-slate-600');
+                        });
+                        btn.classList.remove('bg-white', 'text-slate-600');
+                        btn.classList.add('bg-indigo-600', 'text-white', 'ring-2', 'ring-indigo-100');
+                        this.currentPlatform = btn.dataset.platform;
+                    };
+                });
+            }
+
+            addMessage(role, content) {
+                const wrapper = document.createElement('div');
+                wrapper.className = `flex w-full ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`;
+                
+                const div = document.createElement('div');
+                // Increased width for bot messages containing grids
+                div.className = `p-4 md:p-6 rounded-2xl ${
+                    role === 'user' ? 'user-bubble max-w-[85%] md:max-w-[70%]' : 'bot-bubble w-full max-w-[95%] md:max-w-[90%]'
+                } font-medium text-sm md:text-base`;
+                
+                div.innerHTML = content;
+                wrapper.appendChild(div);
+                this.chat.appendChild(wrapper);
+                this.chat.scrollTop = this.chat.scrollHeight;
+                return div;
+            }
+
+            updateMessage(el, content) {
+                el.innerHTML = content;
+                this.chat.scrollTop = this.chat.scrollHeight;
+            }
+
+            async sendMessage() {
+                const text = this.input.value.trim();
+                if (!text || this.isLoading) return;
+
+                this.addMessage('user', text);
+                this.input.value = '';
+                this.messages.push({ role: 'user', content: text });
+                this.isLoading = true;
+
+                const loadingEl = this.addMessage(
+                    'assistant', 
+                    `<div class="flex items-center gap-3">
+                        <div class="loading-dots flex gap-1">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                            <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                            <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                        </div>
+                        <span class="text-xs uppercase font-bold tracking-widest opacity-80">Scanning ${this.currentPlatform}...</span>
+                    </div>`
+                );
+
+                this.sendBtn.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('messages', JSON.stringify(this.messages));
+                    formData.append('platform', this.currentPlatform);
+
+                    const response = await fetch('/chat/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-CSRFToken': csrftoken }
+                    });
+
+                    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                    const data = await response.json();
+                    
+                    const reply = this.parseProducts(data.reply);
+                    this.updateMessage(loadingEl, reply);
+                    this.messages.push({ role: 'assistant', content: data.reply });
+
+                } catch (error) {
+                    console.error(error);
+                    this.updateMessage(loadingEl, `<div class="flex items-center gap-2 text-rose-100 font-bold"><i class="fas fa-exclamation-circle"></i> Service Unavailable. Check MCP servers.</div>`);
+                } finally {
+                    this.isLoading = false;
+                    this.sendBtn.disabled = false;
+                }
+            }
+
+            parseProducts(text) {
+                const jsonMatch = text.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+                if (!jsonMatch) return text.replace(/\n/g, '<br>');
+
+                let products = [];
+                jsonMatch.forEach(chunk => {
+                    try {
+                        const parsed = JSON.parse(chunk);
+                        if (parsed.products && Array.isArray(parsed.products)) {
+                            products = parsed.products;
+                        }
+                    } catch (e) {}
+                });
+
+                if (products.length === 0) return text.replace(/\n/g, '<br>');
+
+                let html = `<div class="mb-4 font-bold text-sm uppercase tracking-wider opacity-90">I found ${products.length} matching items:</div>`;
+                // Grid layout: 1 col on mobile, 2 col on tablet, 3-4 col on desktop
+                html += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-4">';
+                
+                products.slice(0, 12).forEach((product) => {
+                    const isAmazon = product.platform?.toLowerCase().includes('amazon');
+                    const platformTag = isAmazon ? 'amazon-tag' : 'flipkart-tag';
+                    const icon = isAmazon ? 'fab fa-amazon' : 'fas fa-shopping-cart';
+                    
+                    html += `
+                        <div class="product-card flex flex-col p-3 shadow-sm h-full">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="platform-tag ${platformTag}">
+                                    <i class="${icon} mr-1"></i> ${product.platform}
+                                </span>
+                            </div>
+                            <h3 class="text-slate-800 text-[11px] font-bold leading-tight mb-3 line-clamp-2 h-8">${product.name}</h3>
+                            <div class="mt-auto">
+                                <div class="text-base font-black text-slate-900 mb-3">${product.price}</div>
+                                <a href="${product.url}" target="_blank" class="flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-indigo-600 text-white py-2 rounded-lg font-bold text-[10px] transition-all uppercase tracking-tighter">
+                                    Buy Now <i class="fas fa-external-link-alt text-[8px]"></i>
+                                </a>
+                            </div>
+                        </div>`;
+                });
+                
+                html += '</div>';
+                return html;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.shoppingBot = new ShoppingBot();
+        });
+    </script>
+</body>
+</html>

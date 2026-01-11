@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 FireGuard AI - Professional Fire Detection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 40px 30px;
+            border-radius: 25px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .header h1 {
+            font-size: 3em;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 20px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .status.live { 
+            background: linear-gradient(45deg, #00ff88, #00cc6a); 
+            color: black;
+            box-shadow: 0 0 30px #00ff88;
+        }
+        .status.error { 
+            background: linear-gradient(45deg, #ff4444, #cc0000); 
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px #ff4444; }
+            50% { box-shadow: 0 0 40px #ff4444; }
+        }
+        .camera-container {
+            background: rgba(0,0,0,0.4);
+            padding: 40px;
+            border-radius: 25px;
+            margin-bottom: 40px;
+            text-align: center;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+        }
+        #videoElement {
+            width: 100%;
+            max-width: 1100px;
+            height: 650px;
+            border: 5px solid #444;
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            transition: all 0.4s;
+            object-fit: cover;
+        }
+        .fire-detected {
+            border-color: #ff4444 !important;
+            box-shadow: 0 0 80px #ff4444, inset 0 0 80px rgba(255,68,68,0.2) !important;
+            animation: firePulse 0.8s infinite;
+        }
+        @keyframes firePulse {
+            0%, 100% { 
+                transform: scale(1);
+                filter: brightness(1) drop-shadow(0 0 40px #ff4444);
+            }
+            50% { 
+                transform: scale(1.03);
+                filter: brightness(1.3) drop-shadow(0 0 80px #ff4444);
+            }
+        }
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(102,126,234,0.6);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .fire-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff5252) !important;
+            box-shadow: 0 10px 30px rgba(255,107,107,0.4) !important;
+        }
+        .alert-system {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .alert-box, .stats-grid {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .alert-box {
+            grid-column: 1;
+            text-align: center;
+        }
+        .alert-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #feca57;
+        }
+        .alert-message {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 15px;
+            transition: all 0.4s;
+        }
+        .alert-safe {
+            background: rgba(0,255,136,0.2);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+        }
+        .alert-fire {
+            background: rgba(255,68,68,0.3);
+            border: 3px solid #ff4444;
+            color: white;
+            animation: shake 0.6s infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .stats-grid {
+            grid-column: 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .fire-stat { color: #ff6b6b; }
+        .good-stat { color: #00ff88; }
+        @media (max-width: 768px) {
+            .alert-system { grid-template-columns: 1fr; }
+            #videoElement { height: 400px; }
+            .header h1 { font-size: 2em; }
+            .controls { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔥 FireGuard AI</h1>
+            <p>Real-time Fire Detection | Light-Proof | 3-Layer Validation</p>
+            <div class="status" id="statusDiv">Connecting to camera...</div>
+        </div>
+
+        <!-- Camera Feed -->
+        <div class="camera-container">
+            <h2>📹 Live Webcam Monitoring (15 FPS)</h2>
+            <video id="videoElement" autoplay playsinline muted></video>
+            <div class="controls">
+                <button id="startBtn">▶️ Start Detection</button>
+                <button id="stopBtn" disabled>⏹️ Stop Detection</button>
+                <button id="testBtn" class="fire-btn">🧪 Test Mode</button>
+            </div>
+        </div>
+
+        <!-- Alert System + Stats -->
+        <div class="alert-system">
+            <div class="alert-box">
+                <div class="alert-title">Alert Status</div>
+                <div class="alert-message alert-safe" id="alertMessage">
+                    ✅ System Ready - No Fire Detected
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="fpsValue">0</div>
+                    <div class="stat-label">Frame Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="confidenceValue">0%</div>
+                    <div class="stat-label">Confidence</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="smokeValue">0</div>
+                    <div class="stat-label">Smoke Pixels</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="flickerValue">0%</div>
+                    <div class="stat-label">Flicker Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FireGuardAI {
+            constructor() {
+                this.video = document.getElementById('videoElement');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.testBtn = document.getElementById('testBtn');
+                this.statusDiv = document.getElementById('statusDiv');
+                this.alertMessage = document.getElementById('alertMessage');
+                
+                this.canvas = document.createElement('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.isDetecting = false;
+                this.fireDetected = false;
+                this.testMode = false;
+                this.lastFrameTime = 0;
+                this.flickerHistory = [];
+                this.smokePixels = 0;
+                this.firePixels = 0;
+                this.confidence = 0;
+                this.fps = 0;
+                this.confirmationCount = 0;
+                
+                this.init();
+            }
+
+            async init() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: 1280, height: 720, frameRate: 15 }
+                    });
+                    this.video.srcObject = stream;
+                    
+                    this.video.onloadedmetadata = () => {
+                        this.canvas.width = this.video.videoWidth;
+                        this.canvas.height = this.video.videoHeight;
+                        this.setStatus('live');
+                    };
+                } catch (err) {
+                    console.error('Camera error:', err);
+                    this.setStatus('error');
+                }
+
+                this.startBtn.onclick = () => this.startDetection();
+                this.stopBtn.onclick = () => this.stopDetection();
+                this.testBtn.onclick = () => this.toggleTestMode();
+            }
+
+            startDetection() {
+                this.isDetecting = true;
+                this.testMode = false;
+                this.startBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.testBtn.textContent = '🧪 Test Mode';
+                this.setStatus('live');
+                this.detectLoop();
+            }
+
+            stopDetection() {
+                this.isDetecting = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.fireDetected = false;
+                this.confirmationCount = 0;
+                this.setAlert('✅ Monitoring stopped - System safe');
+                this.setStatus('live');
+                document.body.style.background = '';
+                this.video.classList.remove('fire-detected');
+            }
+
+            toggleTestMode() {
+                this.testMode = !this.testMode;
+                this.testBtn.textContent = this.testMode ? '✅ Live Mode' : '🧪 Test Mode';
+                this.testBtn.className = this.testMode ? '' : 'fire-btn';
+            }
+
+            detectLoop() {
+                if (!this.isDetecting) return;
+
+                const now = performance.now();
+                this.fps = Math.round(1000 / (now - this.lastFrameTime));
+                this.lastFrameTime = now;
+
+                this.ctx.drawImage(this.video, 0, 0);
+                const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                
+                const fireResult = this.analyzeFrame(imageData);
+                
+                if (fireResult !== this.fireDetected) {
+                    this.fireDetected = fireResult;
+                    if (fireResult) {
+                        this.confirmationCount++;
+                        if (this.confirmationCount >= 3) {
+                            this.triggerFireAlert();
+                        }
+                    } else {
+                        this.confirmationCount = 0;
+                        this.setAlert('✅ No fire detected - System safe');
+                        document.body.style.background = '';
+                    }
+                }
+
+                this.updateStats();
+                this.video.classList.toggle('fire-detected', this.fireDetected);
+                
+                requestAnimationFrame(() => this.detectLoop());
+            }
+
+            analyzeFrame(imageData) {
+                const { data } = imageData;
+                let firePixels = 0;
+                let smokePixels = 0;
+                let maxConfidence = 0;
+
+                // Sample every 30th pixel for 15 FPS performance
+                for (let i = 0; i < data.length; i += 30) {
+                    const r = data[i], g = data[i + 1], b = data[i + 2];
+                    
+                    // LAYER 1: FIRE COLOR DETECTION
+                    const fireConf = this.fireColorCheck(r, g, b);
+                    if (fireConf > 0.7) {
+                        firePixels++;
+                        maxConfidence = Math.max(maxConfidence, fireConf);
+                    }
+                    
+                    // LAYER 2: SMOKE DETECTION
+                    const smokeConf = this.smokeColorCheck(r, g, b);
+                    if (smokeConf > 0.6) smokePixels++;
+                }
+
+                // LAYER 3: FLICKER ANALYSIS
+                this.flickerHistory.push(firePixels);
+                if (this.flickerHistory.length > 8) this.flickerHistory.shift();
+                const flickerScore = this.analyzeFlicker(firePixels);
+
+                this.firePixels = firePixels;
+                this.smokePixels = smokePixels;
+                this.confidence = maxConfidence;
+
+                // ALL 3 LAYERS must confirm fire
+                return firePixels > 25 && smokePixels > 8 && flickerScore > 0.5;
+            }
+
+            fireColorCheck(r, g, b) {
+                const brightness = (r + g + b) / 3;
+                if (brightness < 110) return 0;
+                
+                // Orange/Red fire signature (R >> G > B)
+                if (r > 160 && g < 140 && b < 120 && r > g + 25) {
+                    return Math.min(0.95, (brightness - 100) / 150);
+                }
+                
+                // White-hot fire
+                if (brightness > 210 && Math.abs(r - g) < 25 && Math.abs(r - b) < 25) {
+                    return 0.85;
+                }
+                return 0;
+            }
+
+            smokeColorCheck(r, g, b) {
+                const gray = (r + g + b) / 3;
+                const maxC = Math.max(r, g, b);
+                const minC = Math.min(r, g, b);
+                const saturation = (maxC - minC) / maxC;
+                
+                return (gray > 70 && gray < 155 && saturation < 0.22) ? 0.8 : 0;
+            }
+
+            analyzeFlicker(currentFirePixels) {
+                if (this.flickerHistory.length < 3) return 0;
+                const mean = this.flickerHistory.reduce((a, b) => a + b) / this.flickerHistory.length;
+                const variance = this.flickerHistory.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / this.flickerHistory.length;
+                return Math.min(1, variance / 80); // Fire flickers more than lights
+            }
+
+            triggerFireAlert() {
+                this.setAlert('🚨 FIRE DETECTED! EVACUATE IMMEDIATELY!');
+                document.body.style.background = 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)';
+                this.playAlarm();
+            }
+
+            setAlert(message) {
+                this.alertMessage.textContent = message;
+                this.alertMessage.className = `alert-message ${message.includes('FIRE') ? 'alert-fire' : 'alert-safe'}`;
+            }
+
+            setStatus(status) {
+                this.statusDiv.textContent = status === 'live' ? '🟢 LIVE MONITORING' : status;
+                this.statusDiv.className = `status ${status}`;
+            }
+
+            updateStats() {
+                document.getElementById('fpsValue').textContent = `${this.fps} FPS`;
+                document.getElementById('confidenceValue').textContent = `${Math.round(this.confidence * 100)}%`;
+                document.getElementById('smokeValue').textContent = this.smokePixels;
+                document.getElementById('flickerValue').textContent = `${Math.round(this.analyzeFlicker(this.firePixels) * 100)}%`;
+            }
+
+            playAlarm() {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [900, 1100, 1300, 1100, 900];
+                notes.forEach((freq, i) => {
+                    setTimeout(() => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.value = freq;
+                        osc.type = 'sawtooth';
+                        gain.gain.setValueAtTime(0.4, audioContext.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                        osc.start(audioContext.currentTime);
+                        osc.stop(audioContext.currentTime + 0.4);
+                    }, i * 250);
+                });
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            new FireGuardAI();
+        });
+    </script>
+</body>
+</html>
